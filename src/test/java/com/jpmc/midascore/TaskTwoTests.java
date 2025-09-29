@@ -17,8 +17,7 @@ class TaskTwoTests {
     @Autowired
     private KafkaProducer kafkaProducer;
 
-    @Autowired
-    private FileLoader fileLoader;
+    @Autowired    private FileLoader fileLoader;
 
     @Test
     void task_two_verifier() throws InterruptedException {
