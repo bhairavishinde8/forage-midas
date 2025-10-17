@@ -23,6 +23,9 @@ public class TaskFourTests {
     @Autowired
     private FileLoader fileLoader;
 
+    @Autowired
+    private com.jpmc.midascore.repository.UserRepository userRepository; // ADD THIS
+
     @Test
     void task_four_verifier() throws InterruptedException {
         userPopulator.populate();
@@ -30,14 +33,31 @@ public class TaskFourTests {
         for (String transactionLine : transactionLines) {
             kafkaProducer.send(transactionLine);
         }
-        Thread.sleep(2000);
+        Thread.sleep(10000); // Increased sleep to ensure all transactions process
 
+        // ADD THIS DEBUG CODE:
+        logger.info("=== CHECKING WILBUR'S BALANCE ===");
+
+        // Get wilbur's balance directly from database
+        var wilburOpt = userRepository.findByName("wilbur");
+        if (wilburOpt.isPresent()) {
+            float wilburBalance = wilburOpt.get().getBalance();
+            int roundedBalance = (int) wilburBalance; // Round down to nearest integer
+
+            logger.info("Wilbur's balance: {}", wilburBalance);
+            logger.info("Rounded down: {}", roundedBalance);
+            logger.info("=== SUBMIT THIS NUMBER: {} ===", roundedBalance);
+        } else {
+            logger.error("Wilbur not found in database!");
+        }
 
         logger.info("----------------------------------------------------------");
         logger.info("----------------------------------------------------------");
         logger.info("----------------------------------------------------------");
         logger.info("use your debugger to find out what wilbur's balance is after all transactions are processed");
         logger.info("kill this test once you find the answer");
+
+        // Keep running so you can see the output
         while (true) {
             Thread.sleep(20000);
             logger.info("...");

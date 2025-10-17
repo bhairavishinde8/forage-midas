@@ -23,11 +23,11 @@ public class TransactionListener {
 
         boolean success = transactionService.processTransaction(transaction);
 
-        // Call debug after each transaction
-        transactionService.debugWaldorfBalance();
+        // Debug wilbur balance after each transaction
+        transactionService.debugWilburBalance();
 
         if (success) {
-            logger.info("Transaction processed successfully");
+            logger.info("Transaction processed successfully with incentive");
         } else {
             logger.warn("Transaction rejected");
         }

@@ -14,21 +14,22 @@ public class TransactionService {
 
     private final UserRepository userRepository;
     private final TransactionRecordRepository transactionRecordRepository;
+    private final IncentiveService incentiveService;
 
     public TransactionService(UserRepository userRepository,
-                              TransactionRecordRepository transactionRecordRepository) {
+                              TransactionRecordRepository transactionRecordRepository,
+                              IncentiveService incentiveService) {
         this.userRepository = userRepository;
         this.transactionRecordRepository = transactionRecordRepository;
+        this.incentiveService = incentiveService;
     }
 
     @Transactional
     public boolean processTransaction(Transaction transaction) {
-        // Try to find users by ID first, then by name if needed
+        // Validate sender exists
         Optional<UserRecord> senderOpt = userRepository.findById(transaction.getSenderId());
         Optional<UserRecord> recipientOpt = userRepository.findById(transaction.getRecipientId());
 
-        // If not found by ID, the test might be using different identifiers
-        // For now, let's assume the IDs in the Transaction match the database IDs
         if (senderOpt.isEmpty() || recipientOpt.isEmpty()) {
             return false; // Invalid sender or recipient
         }
@@ -41,39 +42,51 @@ public class TransactionService {
             return false; // Insufficient funds
         }
 
-        // Process the transaction
-        float amount = transaction.getAmount();
-        sender.setBalance(sender.getBalance() - amount);
-        recipient.setBalance(recipient.getBalance() + amount);
+        // Get incentive amount from API
+        float incentiveAmount = incentiveService.getIncentiveAmount(transaction);
+
+        // Process the transaction with incentive
+        float transactionAmount = transaction.getAmount();
+
+        // Deduct only transaction amount from sender
+        sender.setBalance(sender.getBalance() - transactionAmount);
+
+        // Add both transaction amount AND incentive to recipient
+        recipient.setBalance(recipient.getBalance() + transactionAmount + incentiveAmount);
 
         // Save updated user balances
         userRepository.save(sender);
         userRepository.save(recipient);
 
-        // Create and save transaction record
-        TransactionRecord transactionRecord = new TransactionRecord(sender, recipient, amount);
+        // Create and save transaction record with incentive
+        TransactionRecord transactionRecord = new TransactionRecord(
+                sender, recipient, transactionAmount, incentiveAmount
+        );
         transactionRecordRepository.save(transactionRecord);
+
+        System.out.println("Processed transaction: " + transactionAmount +
+                " with incentive: " + incentiveAmount);
 
         return true; // Transaction successful
     }
 
-    // Method to get user balance by name (for debugging "waldorf")
+    // Method to get user balance by name (for debugging "wilbur")
     public Float getUserBalance(String userName) {
         return userRepository.findByName(userName)
                 .map(UserRecord::getBalance)
                 .orElse(null);
     }
 
-    // Add this method to TransactionService class
-    public void debugWaldorfBalance() {
+    // Debug method for wilbur
+    public void debugWilburBalance() {
         try {
-            UserRecord waldorf = userRepository.findByName("waldorf").get();
-            System.out.println("=== DEBUG ===");
-            System.out.println("Waldorf balance: " + waldorf.getBalance());
-            System.out.println("Rounded down: " + (int) waldorf.getBalance());
-            System.out.println("=== DEBUG ===");
+            UserRecord wilbur = userRepository.findByName("wilbur").get();
+            System.out.println("=== DEBUG WILBUR ===");
+            System.out.println("Wilbur balance: " + wilbur.getBalance());
+            System.out.println("Rounded down: " + (int) wilbur.getBalance());
+            System.out.println("=== DEBUG WILBUR ===");
         } catch (Exception e) {
-            System.out.println("Waldorf not found in database");
+            System.out.println("Wilbur not found in database");
         }
     }
 }

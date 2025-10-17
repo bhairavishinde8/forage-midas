@@ -22,15 +22,29 @@ public class TransactionRecord {
     private float amount;
 
     @Column(nullable = false)
+    private float incentiveAmount;  // This field exists
+
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    // Constructors
+    // Default constructor
     public TransactionRecord() {}
 
+    // Existing constructor (without incentive)
     public TransactionRecord(UserRecord sender, UserRecord recipient, float amount) {
         this.sender = sender;
         this.recipient = recipient;
         this.amount = amount;
+        this.incentiveAmount = 0.0f;  // Default to 0
+        this.timestamp = LocalDateTime.now();
+    }
+
+    // NEW constructor with incentive parameter
+    public TransactionRecord(UserRecord sender, UserRecord recipient, float amount, float incentiveAmount) {
+        this.sender = sender;
+        this.recipient = recipient;
+        this.amount = amount;
+        this.incentiveAmount = incentiveAmount;
         this.timestamp = LocalDateTime.now();
     }
 
@@ -46,6 +60,9 @@ public class TransactionRecord {
 
     public float getAmount() { return amount; }
     public void setAmount(float amount) { this.amount = amount; }
+
+    public float getIncentiveAmount() { return incentiveAmount; }
+    public void setIncentiveAmount(float incentiveAmount) { this.incentiveAmount = incentiveAmount; }
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
