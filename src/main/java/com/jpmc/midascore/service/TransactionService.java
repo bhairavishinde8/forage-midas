@@ -89,4 +89,10 @@ public class TransactionService {
             System.out.println("Wilbur not found in database");
         }
     }
+
+    public Float getUserBalanceById(Long userId) {
+        return userRepository.findById(userId)
+                .map(UserRecord::getBalance)
+                .orElse(null);
+    }
 }
